@@ -31,7 +31,7 @@ def main():
     text = answer['text']
 
     if len(text) != 0:
-        send_message(chat_id, 'ты кек')
+        send_message(chat_id)
 
 if __name__ == '__main__':
     main()
