@@ -32,7 +32,7 @@ sslify = SSLify(app)
 def send_message(chat_id, text='wait, please'):
     url = URL + 'sendMessage'
     answer = {'chat_id': chat_id, 'text': text}
-    r = requests.post(url, json=answer, proxies=proxies)
+    r = requests.post(url, json=answer)
     return r.json()
 
 @app.route('/', methods=['POST', 'GET'])
