@@ -12,23 +12,6 @@ proxies = {'https': 'http://193.85.228.180:	36247'}
 app = Flask(__name__)
 sslify = SSLify(app)
 
-# def get_updates():
-#     url = URL + 'getupdates'
-#     print(url)
-#     r = requests.get(url, proxies=proxies)
-#     print(r)
-#     return r.json()
-
-# def get_message():
-#     data = get_updates()
-#
-#     chat_id = data['result'][-1]['message']['chat']['id']
-#     message_text = data['result'][-1]['message']['text']
-#
-#     message = {'chat_id': chat_id,
-#                'text': message_text}
-#     return message
-
 def send_message(chat_id, text='wait, please'):
     url = URL + 'sendMessage'
     answer = {'chat_id': chat_id, 'text': text}
@@ -46,17 +29,7 @@ def index():
             send_message(chat_id, message)
 
         return jsonify(r)
-    return '<h1>test</h1>'
-
-def main():
-    # answer = get_message()
-    # chat_id = answer['chat_id']
-    # text = answer['text']
-    #
-    # if len(text) != 0:
-    #     send_message(chat_id)
-    pass
+    return 'nothing'
 
 if __name__ == '__main__':
-    # main()
     app.run()
