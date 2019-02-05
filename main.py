@@ -3,12 +3,14 @@ import json
 from flask import Flask
 from flask import request
 from flask import jsonify
+from flask_sslify import SSLify
 
 token = '649594459:AAH1hu90_ZrEhAtZehVDL9xYvkiE2MnLvhU'
 URL = 'https://api.telegram.org/bot' + token + '/'
-proxies = {'https': 'http://92.51.126.44:30192'}
+proxies = {'https': 'http://193.85.228.180:	36247'}
 
 app = Flask(__name__)
+sslify = SSLify(app)
 
 # def get_updates():
 #     url = URL + 'getupdates'
