@@ -47,11 +47,8 @@ def index():
         elif message == 'Сб18-11б':
             URL_of_group = 'http://edu.sfu-kras.ru/timetable?group=СБ18+-+11Б'
 
-        # ответы на номер группы
-        if len(message) != 0:
-            send_message(chat_id, message)
-        else:
-            send_message(chat_id, get_timetable_week(get_html(URL_of_group)))
+        # ответ
+        send_message(chat_id, get_timetable_week(get_html(URL_of_group)))
 
         return jsonify(r)
     return 'kek'
