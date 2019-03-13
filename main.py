@@ -13,23 +13,60 @@ app = Flask(__name__)
 sslify = SSLify(app)
 
 # ////////////////////////
-URL_of_group = ""
 
 def get_html(url):
-    r = requests.get(url)
-    return r.text
+    html = requests.get(url[:-1])
+    return html.text
+
+def get_group_url(user_message):
+    f = open('text')
+    group_url = 'Не удалось найти расписание'
+    for line in f:
+        if user_message.lower() in line:
+            group_url = 'http://edu.sfu-kras.ru/timetable' + line[line.find('?'):]
+            break
+
+    return group_url
 
 def get_timetable_week(html):
-    timetable = ''
     soup = BeautifulSoup(html, 'lxml')
-    trows = soup.find('table', class_='table timetable').find_all('tr', class_='table-center')
-    for row in trows:
-        timetable += row.text + '\n'
 
-    return timetable
+    type_of_week = soup.find('div', class_='content').find('p').find('b').text[5:]
+
+    # Все строчки таблицы
+    table = soup.find('table', class_='table timetable')
+    week = ''
+
+    for row in table:
+        if hasattr(row.find('th', colspan=4), 'text'):
+            week += '{0}/{1}'.format(row.find('th', colspan=4).text.upper(), type_of_week) + '\n'
+
+        if hasattr(row.find('td', width='1%'), 'text'):
+            if hasattr(row.find('td', class_='nobr'), 'text'):
+                if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
+                    if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
+                        if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
+                            week += '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(row.find('td', width='1%').text,
+                                                                             row.find('td', class_='nobr').text,
+                                                                             row.find('td', class_='light',
+                                                                                      width='40%').find('b').text,
+                                                                             row.find('td', class_='light',
+                                                                                      width='40%').contents[1],
+                                                                             row.find('td', class_='light',
+                                                                                      width='40%').find('em').text,
+                                                                             row.find('td', class_='light',
+                                                                                      width='40%').find(
+                                                                                 'b').findNextSibling('a').text) + '\n'
+                        else:
+                            week += '{0} {1} {2}'.format(row.find('td', width='1%').text,
+                                                               row.find('td', class_='nobr').text,
+                                                               row.find('td', class_='light', width='40%').find(
+                                                                   'b').text) + '\n'
+
+    return week
 # ////////////////////////////
 
-def send_message(chat_id, text='wait, please'):
+def send_message(chat_id, text='Не удалось найти расписание'):
     url = URL + 'sendMessage'
     answer = {'chat_id': chat_id, 'text': text}
     r = requests.post(url, json=answer)
@@ -42,14 +79,12 @@ def index():
         chat_id = r['message']['chat']['id']
         message = r['message']['text']
 
-        if message == 'Ки15-17б':
-            URL_of_group = 'http://edu.sfu-kras.ru/timetable?group=КИ15-17б'
-        elif message == 'Сб18-11б':
-            URL_of_group = 'http://edu.sfu-kras.ru/timetable?group=СБ18+-+11Б'
-        else:
-            URL_of_group = 'http://edu.sfu-kras.ru/timetable?group=КИ15-17б'
-        # ответ
-        send_message(chat_id, get_timetable_week(get_html(URL_of_group)))
+        group_url = get_group_url(message)
+
+        if group_url != 'Не удалось найти расписание':
+            send_message(chat_id, get_timetable_week(get_html(group_url)))
+        elif group_url == 'Не удалось найти расписание':
+            send_message(chat_id)
 
         return jsonify(r)
     return 'kek'
