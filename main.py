@@ -25,7 +25,7 @@ def get_group_url(user_message):
         if user_message.lower() in line:
             group_url = 'http://edu.sfu-kras.ru/timetable' + line[line.find('?'):]
             break
-
+    f.close()
     return group_url
 
 def get_timetable_week(html):
