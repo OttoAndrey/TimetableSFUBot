@@ -1,11 +1,12 @@
 import requests
+import os
 from flask import Flask
 from flask import request
 from flask import jsonify
 from flask_sslify import SSLify
 from bs4 import BeautifulSoup
 
-token = '649594459:AAH1hu90_ZrEhAtZehVDL9xYvkiE2MnLvhU'
+token = os.getenv('TOKEN')
 URL = 'https://api.telegram.org/bot' + token + '/'
 proxies = {'https': 'http://193.85.228.180:	36247'}
 
