@@ -13,11 +13,13 @@ proxies = {'https': 'http://193.85.228.180:	36247'}
 app = Flask(__name__)
 sslify = SSLify(app)
 
+
 # ////////////////////////
 
 def get_html(url):
     html = requests.get(url[:-1])
     return html.text
+
 
 def get_group_url(user_message):
     f = open('text')
@@ -28,6 +30,7 @@ def get_group_url(user_message):
             break
     f.close()
     return group_url
+
 
 def get_timetable_week(html):
     soup = BeautifulSoup(html, 'lxml')
@@ -48,23 +51,117 @@ def get_timetable_week(html):
                     if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
                         if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
                             week += '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(row.find('td', width='1%').text,
-                                                                             row.find('td', class_='nobr').text,
-                                                                             row.find('td', class_='light',
-                                                                                      width='40%').find('b').text,
-                                                                             row.find('td', class_='light',
-                                                                                      width='40%').contents[1],
-                                                                             row.find('td', class_='light',
-                                                                                      width='40%').find('em').text,
-                                                                             row.find('td', class_='light',
-                                                                                      width='40%').find(
-                                                                                 'b').findNextSibling('a').text) + '\n'
+                                                                                 row.find('td', class_='nobr').text,
+                                                                                 row.find('td', class_='light',
+                                                                                          width='40%').find('b').text,
+                                                                                 row.find('td', class_='light',
+                                                                                          width='40%').contents[1],
+                                                                                 row.find('td', class_='light',
+                                                                                          width='40%').find('em').text,
+                                                                                 row.find('td', class_='light',
+                                                                                          width='40%').find(
+                                                                                     'b').findNextSibling(
+                                                                                     'a').text) + '\n'
                         else:
                             week += '{0} {1} {2}'.format(row.find('td', width='1%').text,
-                                                               row.find('td', class_='nobr').text,
-                                                               row.find('td', class_='light', width='40%').find(
-                                                                   'b').text) + '\n'
+                                                         row.find('td', class_='nobr').text,
+                                                         row.find('td', class_='light', width='40%').find(
+                                                             'b').text) + '\n'
 
     return week
+
+
+def get_timetable_day(html, day):
+    soup = BeautifulSoup(html, 'lxml')
+    type_of_week = soup.find('div', class_='content').find('p').find('b').text[5:]
+    table = soup.find('table', class_='table timetable')
+    timetable_day = ''
+
+    for row in table:
+        if hasattr(row.find('th', colspan=4), 'text'):
+            if row.find('th', colspan=4).text == day:
+                timetable_day += '{0}/{1}'.format(row.find('th', colspan=4).text.upper(), type_of_week) + '\n'
+                temp = '{0}/{1}'.format(row.find('th', colspan=4).text.upper(), type_of_week) + '\n'
+                row = row.findNext('tr')
+                row = row.findNext('tr')
+
+                try:
+                    while row.find('td'):
+                        if hasattr(row.find('td', width='1%'), 'text'):
+                            if hasattr(row.find('td', class_='nobr'), 'text'):
+                                if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
+                                    if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
+                                        if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
+                                            timetable_day += '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                                row.find('td', width='1%').text,
+                                                row.find('td', class_='nobr').text,
+                                                row.find('td', class_='light',
+                                                         width='40%').find('b').text,
+                                                row.find('td', class_='light',
+                                                         width='40%').contents[1],
+                                                row.find('td', class_='light',
+                                                         width='40%').find('em').text,
+                                                row.find('td', class_='light',
+                                                         width='40%').find(
+                                                    'b').findNextSibling('a').text) + '\n'
+
+                                        else:
+                                            timetable_day += '{0} {1} {2}'.format(row.find('td', width='1%').text,
+                                                                                  row.find('td', class_='nobr').text,
+                                                                                  row.find('td', class_='light',
+                                                                                           width='40%').find(
+                                                                                      'b').text) + '\n'
+                        row = row.findNext('tr')
+                except(AttributeError):
+                    pass
+
+    if timetable_day == '' or timetable_day == temp:
+        timetable_day = 'Расписания на этот день нет'
+    return timetable_day
+
+
+def user_massages_handler(chat_id, message):
+    message = message.lower().lstrip().rstrip()
+
+    dic_days = {'пн': 'понедельник',
+                'вт': 'вторник',
+                'ср': 'среда',
+                'чт': 'четверг',
+                'пт': 'пятница',
+                'сб': 'суббота'}
+
+    if message == '/start':
+        send_message(chat_id, 'тут должно быть вступление, но его пока нет')
+    elif ' ' in message:
+        start = message.index(' ')
+        number_of_group = message[:start]
+        day = message[start + 1:]
+        temp = day
+        for key, value in dic_days.items():
+            if day == key:
+                day = value.title()
+                break
+            elif day == value:
+                day = value.title()
+                break
+        # вообще сначала надо проверять на наличие группы, а не потом. кому этот день нужен, если группы нет...
+        if day == temp:
+            send_message(chat_id, 'Некорректный день')
+        elif day != temp:
+            group_url = get_group_url(number_of_group)
+            if group_url == 'Не удалось найти расписание':
+                send_message(chat_id, group_url)
+            elif group_url != 'Не удалось найти расписание':
+                send_message(chat_id, get_timetable_day(get_html(group_url), day))
+
+    else:
+        group_url = get_group_url(message)
+        if group_url == 'Не удалось найти расписание':
+            send_message(chat_id, group_url)
+        elif group_url != 'Не удалось найти расписание':
+            send_message(chat_id, get_timetable_week(get_html(group_url)))
+
+
 # ////////////////////////////
 
 def send_message(chat_id, text='Не удалось найти расписание'):
@@ -73,6 +170,7 @@ def send_message(chat_id, text='Не удалось найти расписан�
     r = requests.post(url, json=answer)
     return r.json()
 
+
 @app.route('/', methods=['POST', 'GET'])
 def index():
     if request.method == 'POST':
@@ -80,15 +178,11 @@ def index():
         chat_id = r['message']['chat']['id']
         message = r['message']['text']
 
-        group_url = get_group_url(message)
-
-        if group_url != 'Не удалось найти расписание':
-            send_message(chat_id, get_timetable_week(get_html(group_url)))
-        elif group_url == 'Не удалось найти расписание':
-            send_message(chat_id)
+        user_massages_handler(chat_id, message)
 
         return jsonify(r)
     return 'kek'
+
 
 if __name__ == '__main__':
     app.run()
