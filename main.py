@@ -217,6 +217,13 @@ def user_massages_handler(chat_id, message):
         else:
             # расписание на день
             if second_part in dic_days or second_part in dic_days.values():
+                for key, value in dic_days.items():
+                    if second_part == key:
+                        second_part = value.title()
+                        break
+                    elif second_part == value:
+                        second_part = value.title()
+                        break
                 send_message(chat_id, get_timetable_day(get_html(get_group_url(number_of_group)), second_part))
             # расписание на определенную неделю
             elif second_part in types_of_week:
