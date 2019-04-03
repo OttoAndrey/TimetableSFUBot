@@ -23,7 +23,7 @@ def get_html(url):
 
 def get_group_url(number_of_group):
     f = open('text')
-    group_url = 'Не удалось найти расписание'
+    group_url = 'Не удалось найти группу'
     for line in f:
         if number_of_group.lower() in line:
             group_url = 'http://edu.sfu-kras.ru/timetable' + line[line.find('?'):-1]
@@ -212,11 +212,11 @@ def user_massages_handler(chat_id, message):
         second_part = message[start + 1:]
 
         # неправильный запрос
-        if get_group_url(number_of_group) == 'Не удалось найти расписание':
+        if get_group_url(number_of_group) == 'Не удалось найти группу':
             send_message(chat_id)
         else:
             # расписание на день
-            if second_part in dic_days or dic_days.values():
+            if second_part in dic_days or second_part in dic_days.values():
                 send_message(chat_id, get_timetable_day(get_html(get_group_url(number_of_group)), second_part))
             # расписание на определенную неделю
             elif second_part in types_of_week:
@@ -233,7 +233,7 @@ def user_massages_handler(chat_id, message):
 
 # ////////////////////////////
 
-def send_message(chat_id, text='Не удалось найти расписание'):
+def send_message(chat_id, text='Не удалось найти группу'):
     url = URL + 'sendMessage'
     answer = {'chat_id': chat_id, 'text': text}
     r = requests.post(url, json=answer)
