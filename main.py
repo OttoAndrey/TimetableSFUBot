@@ -1,5 +1,6 @@
 import requests
 import os
+import re
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -73,7 +74,7 @@ def get_timetable_week(html, type='текущая неделя'):
                                                              row.find('td', class_='light', width='40%').find(
                                                                  'b').text) + '\n'
 
-    elif type in ['нечет', 'нечетная', 'нечетная неделя', '1']:
+    elif type in ['нечет', 'нечетная', 'нечетная неделя', 'нечёт', 'нечётная', 'нечётная неделя', '1']:
         # нечетная неделя
         for row in table:
             if hasattr(row.find('th', colspan=4), 'text'):
@@ -104,7 +105,7 @@ def get_timetable_week(html, type='текущая неделя'):
                                                              row.find('td', class_='nobr').text,
                                                              row.find('td', width='40%').find(
                                                                  'b').text) + '\n'
-    elif type in ['чет', 'четная', 'четная неделя', '2']:
+    elif type in ['чет', 'четная', 'четная неделя', 'чёт', 'чётная', 'чётная неделя', '2']:
         # четная неделя
         for row in table:
             if hasattr(row.find('th', colspan=4), 'text'):
@@ -199,14 +200,25 @@ def user_massages_handler(chat_id, message):
                 'пт': 'пятница',
                 'сб': 'суббота'}
 
-    types_of_week = ['нечет', 'нечетная', 'нечетная неделя', '1', 'чет', 'четная', 'четная неделя', '2']
+    types_of_week = ['нечет', 'нечетная', 'нечетная неделя', 'нечёт', 'нечётная', 'нечётная неделя' '1', 'чет', 'четная', 'четная неделя', 'чёт', 'чётная', 'чётная неделя', '2']
 
-    # начало
-    if message == '/start':
-        send_message(chat_id, 'тут должно быть вступление, но его пока нет')
+    # Команды
+    if re.fullmatch(r'/\w+', message):
+        if message == '/start':
+            send_message(chat_id, 'Тут должно быть вступление, но его пока нет')
+        else:
+            send_message(chat_id, 'Такой команды нет')
 
-    # день недели
-    elif ' ' in message:
+    # Расписание на текущую неделю
+    elif re.fullmatch(r'\w{2,3}\d{2}-\w+', message) or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+', message) or re.fullmatch(r'\w{2,3}\d{2}-\w+/\w+', message):
+        group_url = get_group_url(message)
+        if group_url == 'Не удалось найти группу':
+            send_message(chat_id, group_url)
+        elif group_url != 'Не удалось найти группу':
+            send_message(chat_id, get_timetable_week(get_html(group_url)))
+
+    # Расписание на определенную неделю и на определенный день недели
+    elif re.search(r'\w{2,3}\d{2}-\w+ \w+', message) or re.search(r'\w{2,3}\d{2}-\w+-\w+ \w+', message) or re.search(r'\w{2,3}\d{2}-\w+/\w+ \w+', message):
         start = message.index(' ')
         number_of_group = message[:start]
         second_part = message[start + 1:]
@@ -217,6 +229,7 @@ def user_massages_handler(chat_id, message):
         else:
             # расписание на день
             if second_part in dic_days or second_part in dic_days.values():
+                # этот цикцл уюрать в get_timetable_day()
                 for key, value in dic_days.items():
                     if second_part == key:
                         second_part = value.title()
@@ -224,18 +237,52 @@ def user_massages_handler(chat_id, message):
                     elif second_part == value:
                         second_part = value.title()
                         break
+
                 send_message(chat_id, get_timetable_day(get_html(get_group_url(number_of_group)), second_part))
             # расписание на определенную неделю
             elif second_part in types_of_week:
                 send_message(chat_id, get_timetable_week(get_html(get_group_url(number_of_group)), second_part))
 
-    # неделя текущая
     else:
-        group_url = get_group_url(message)
-        if group_url == 'Не удалось найти расписание':
-            send_message(chat_id, group_url)
-        elif group_url != 'Не удалось найти расписание':
-            send_message(chat_id, get_timetable_week(get_html(group_url)))
+        send_message(chat_id, 'Неправильно составлен запрос')
+
+    # # начало
+    # if message == '/start':
+    #     send_message(chat_id, 'тут должно быть вступление, но его пока нет')
+    #
+    # # день недели
+    # elif ' ' in message:
+    #     start = message.index(' ')
+    #     number_of_group = message[:start]
+    #     second_part = message[start + 1:]
+    #
+    #     # неправильный запрос
+    #     if get_group_url(number_of_group) == 'Не удалось найти группу':
+    #         send_message(chat_id)
+    #     else:
+    #         # расписание на день
+    #         if second_part in dic_days or second_part in dic_days.values():
+    #             # этот цикцл уюрать в get_timetable_day()
+    #             for key, value in dic_days.items():
+    #                 if second_part == key:
+    #                     second_part = value.title()
+    #                     break
+    #                 elif second_part == value:
+    #                     second_part = value.title()
+    #                     break
+    #
+    #             send_message(chat_id, get_timetable_day(get_html(get_group_url(number_of_group)), second_part))
+    #         # расписание на определенную неделю
+    #         elif second_part in types_of_week:
+    #             send_message(chat_id, get_timetable_week(get_html(get_group_url(number_of_group)), second_part))
+    #
+    # # неделя текущая
+    # else:
+    #     group_url = get_group_url(message)
+    #     if group_url == 'Не удалось найти группу':
+    #         send_message(chat_id, group_url)
+    #     elif group_url != 'Не удалось найти группу':
+    #         send_message(chat_id, get_timetable_week(get_html(group_url)))
 
 
 # ////////////////////////////
