@@ -167,7 +167,7 @@ def get_timetable_teacher(html, type='текущая неделя'):
                     if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
                         if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
                             if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
-                                week += ':small_blue_diamond:{0} {1} {2} |{3}{4}| Каб: {5}'.format(
+                                week += u'\U00002B55' + '{0} {1} {2} |{3}{4}| Каб: {5}'.format(
                                     row.find('td', width='1%').text,
                                     row.find('td', class_='nobr').text,
                                     row.find('td', class_='light',
