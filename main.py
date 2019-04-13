@@ -40,12 +40,12 @@ def get_group_url(number_of_group):
 
 def get_timetable_week(html, type='текущая неделя'):
     soup = BeautifulSoup(html, 'lxml')
-
     type_of_week = soup.find('div', class_='content').find('p').find('b').text[5:]
-
-    # Все строчки таблицы
     table = soup.find('table', class_='table timetable')
-    week = ''
+    h3 = soup.find('h3').text
+    start = h3.index(':')
+    group = h3[start + 2:]
+    week = '' + group + '\n'
 
     if type == 'текущая неделя':
         # текущая неделя
@@ -59,7 +59,7 @@ def get_timetable_week(html, type='текущая неделя'):
                     if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
                         if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
                             if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
-                                week += ':small_blue_diamond:{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                week += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
                                     row.find('td', width='1%').text,
                                     row.find('td', class_='nobr').text,
                                     row.find('td', class_='light',
@@ -75,7 +75,7 @@ def get_timetable_week(html, type='текущая неделя'):
                                         'b').findNextSibling(
                                         'a').text) + '\n'
                             else:
-                                week += '{0} {1} {2}'.format(row.find('td', width='1%').text,
+                                week += u'\U00002B55' + '{0} {1} {2}'.format(row.find('td', width='1%').text,
                                                              row.find('td', class_='nobr').text,
                                                              row.find('td', class_='light', width='40%').find(
                                                                  'b').text) + '\n'
@@ -190,13 +190,17 @@ def get_timetable_day(html, day):
     soup = BeautifulSoup(html, 'lxml')
     type_of_week = soup.find('div', class_='content').find('p').find('b').text[5:]
     table = soup.find('table', class_='table timetable')
-    timetable_day = ''
+
+    h3 = soup.find('h3').text
+    start = h3.index(':')
+    group = h3[start + 2:]
+    timetable_day = '' + group + '\n'
 
     for row in table:
         if hasattr(row.find('th', colspan=4), 'text'):
             if row.find('th', colspan=4).text == day:
                 timetable_day += '{0}/{1}'.format(row.find('th', colspan=4).text.upper(), type_of_week) + '\n'
-                temp = '{0}/{1}'.format(row.find('th', colspan=4).text.upper(), type_of_week) + '\n'
+                temp = timetable_day
                 row = row.findNext('tr')
                 row = row.findNext('tr')
 
@@ -207,7 +211,7 @@ def get_timetable_day(html, day):
                                 if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
                                     if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
                                         if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
-                                            timetable_day += '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                            timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
                                                 row.find('td', width='1%').text,
                                                 row.find('td', class_='nobr').text,
                                                 row.find('td', class_='light',
@@ -221,16 +225,16 @@ def get_timetable_day(html, day):
                                                     'b').findNextSibling('a').text) + '\n'
 
                                         else:
-                                            timetable_day += '{0} {1} {2}'.format(row.find('td', width='1%').text,
+                                            timetable_day += u'\U00002B55' + '{0} {1} {2}'.format(row.find('td', width='1%').text,
                                                                                   row.find('td', class_='nobr').text,
                                                                                   row.find('td', class_='light',
                                                                                            width='40%').find(
                                                                                       'b').text) + '\n'
                         row = row.findNext('tr')
-                except(AttributeError):
+                except AttributeError:
                     pass
 
-    if timetable_day == '' or timetable_day == temp:
+    if timetable_day == '' + group + '\n' or timetable_day == temp:
         timetable_day = 'Расписания на этот день нет'
     return timetable_day
 
