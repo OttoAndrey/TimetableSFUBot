@@ -92,7 +92,7 @@ def get_timetable_week(html, type='текущая неделя'):
                     if hasattr(row.find('td', width='40%').find('b'), 'text'):
                         if hasattr(row.find('td', width='40%'), 'contents'):
                             if hasattr(row.find('td', width='40%').find('em'), 'text'):
-                                week += '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(row.find('td', width='1%').text,
+                                week += u'\U00002B55' +  '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(row.find('td', width='1%').text,
                                                                                      row.find('td', class_='nobr').text,
                                                                                      row.find('td',
                                                                                               width='40%').find(
@@ -107,7 +107,7 @@ def get_timetable_week(html, type='текущая неделя'):
                                                                                          'b').findNextSibling(
                                                                                          'a').text) + '\n'
                             else:
-                                week += '{0} {1} {2}'.format(row.find('td', width='1%').text,
+                                week += u'\U00002B55' +  '{0} {1} {2}'.format(row.find('td', width='1%').text,
                                                              row.find('td', class_='nobr').text,
                                                              row.find('td', width='40%').find(
                                                                  'b').text) + '\n'
@@ -131,7 +131,7 @@ def get_timetable_week(html, type='текущая неделя'):
 
                         if hasattr(row.find('td', width='40%'), 'contents'):
                             if hasattr(row.find('td', width='40%').find('em'), 'text'):
-                                week += '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(row.find('td', width='1%').text,
+                                week += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(row.find('td', width='1%').text,
                                                                                      row.find('td', class_='nobr').text,
                                                                                      a.find('b').text,
                                                                                      a.contents[1],
@@ -140,7 +140,7 @@ def get_timetable_week(html, type='текущая неделя'):
                                                                                          'a').text) + '\n'
 
                             else:
-                                week += '{0} {1} {2}'.format(row.find('td', width='1%').text,
+                                week += u'\U00002B55' + '{0} {1} {2}'.format(row.find('td', width='1%').text,
                                                              row.find('td', class_='nobr').text,
                                                              a.find('b').text) + '\n'
 
@@ -281,19 +281,16 @@ def user_massages_handler(chat_id, message):
         else:
             # расписание на день
             if second_part in dic_days or second_part in dic_days.values():
-                # этот цикцл уюрать в get_timetable_day()
                 for key, value in dic_days.items():
-                    if second_part == key:
+                    if second_part == key or second_part == value:
                         second_part = value.title()
                         break
-                    elif second_part == value:
-                        second_part = value.title()
-                        break
-
                 send_message(chat_id, get_timetable_day(get_html(get_group_url(number_of_group)), second_part))
             # расписание на определенную неделю
             elif second_part in types_of_week:
                 send_message(chat_id, get_timetable_week(get_html(get_group_url(number_of_group)), second_part))
+            else:
+                send_message(chat_id, 'Неправильно составлен запрос')
 
     # Расписание преподавателя на неделю
     elif re.fullmatch(r'\w+ \w. \w.', message):
