@@ -1,9 +1,8 @@
 import requests
 import os
 import re
-from flask import Flask
-from flask import request
-from flask import jsonify
+from datetime import datetime, timedelta
+from flask import Flask, request, jsonify
 from flask_sslify import SSLify
 from bs4 import BeautifulSoup
 
@@ -239,6 +238,69 @@ def get_timetable_day(html, day):
     return timetable_day
 
 
+def get_timetable_today(html):
+    now = datetime.now()
+    day = now.strftime('%A')
+    days_of_the_week = {'Monday': 'Понедельник', 'Tuesday': 'Вторник', 'Wednesday': 'Среда', 'Thursday': 'Четверг',
+                        'Friday': 'Пятница', 'Saturday': 'Суббота', 'Sunday': 'Воскресенье'}
+
+    for key, value in days_of_the_week.items():
+        if day == key:
+            day = value
+            break
+
+    soup = BeautifulSoup(html, 'lxml')
+    type_of_week = soup.find('div', class_='content').find('p').find('b').text[5:]
+
+    h3 = soup.find('h3').text
+    start = h3.index(':')
+    group = h3[start+2:]
+
+    table = soup.find('table', class_='table timetable')
+    timetable_day = '' + group + '\n'
+
+    for row in table:
+        if hasattr(row.find('th', colspan=4), 'text'):
+            if row.find('th', colspan=4).text == day:
+                timetable_day += '{0}/{1}'.format(row.find('th', colspan=4).text.upper(), type_of_week) + '\n'
+                temp = timetable_day
+                row = row.findNext('tr')
+                row = row.findNext('tr')
+
+                try:
+                    while row.find('td'):
+                        if hasattr(row.find('td', width='1%'), 'text'):
+                            if hasattr(row.find('td', class_='nobr'), 'text'):
+                                if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
+                                    if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
+                                        if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
+                                            timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                                row.find('td', width='1%').text,
+                                                row.find('td', class_='nobr').text,
+                                                row.find('td', class_='light',
+                                                         width='40%').find('b').text,
+                                                row.find('td', class_='light',
+                                                         width='40%').contents[1],
+                                                row.find('td', class_='light',
+                                                         width='40%').find('em').text,
+                                                row.find('td', class_='light',
+                                                         width='40%').find(
+                                                    'b').findNextSibling('a').text) + '\n'
+
+                                        else:
+                                            timetable_day += u'\U00002B55' + '{0} {1} {2}'.format(row.find('td', width='1%').text,
+                                                                                  row.find('td', class_='nobr').text,
+                                                                                  row.find('td', class_='light',
+                                                                                           width='40%').find(
+                                                                                      'b').text) + '\n'
+                        row = row.findNext('tr')
+                except(AttributeError):
+                    pass
+
+    if timetable_day == '' + group + '\n' or timetable_day == temp:
+        timetable_day += 'Расписания на этот день нет'
+    return timetable_day
+
 def user_massages_handler(chat_id, message):
     message = message.lower().lstrip().rstrip()
 
@@ -258,6 +320,12 @@ def user_massages_handler(chat_id, message):
             send_message(chat_id, 'Тут должно быть вступление, но его пока нет')
         else:
             send_message(chat_id, 'Такой команды нет')
+
+    # Расписание на сегодня
+    elif re.fullmatch(r'\w{2,3}\d{2}-\w+ сегодня', message):
+        start = message.index(' ')
+        number_of_group = message[:start]
+        send_message(chat_id, get_timetable_today(get_html(get_group_url(number_of_group))))
 
     # Расписание на текущую неделю
     elif re.fullmatch(r'\w{2,3}\d{2}-\w+', message) or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+', message) or re.fullmatch(
