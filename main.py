@@ -45,7 +45,7 @@ def get_timetable_week(html, type='текущая неделя'):
     h3 = soup.find('h3').text
     start = h3.index(':')
     group = h3[start + 2:]
-    week = '' + group + '\n'
+    week = '' + group
 
     if type == 'текущая неделя':
         # текущая неделя
@@ -53,7 +53,7 @@ def get_timetable_week(html, type='текущая неделя'):
             if hasattr(row.find('th', colspan=4), 'text'):
                 week += '\n'
                 week += '{0}/{1}/{2}'.format(row.find('th', colspan=4).text.upper(), type_of_week, type) + '\n'
-
+                temp = week
             if hasattr(row.find('td', width='1%'), 'text'):
                 if hasattr(row.find('td', class_='nobr'), 'text'):
                     if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
@@ -87,7 +87,7 @@ def get_timetable_week(html, type='текущая неделя'):
             if hasattr(row.find('th', colspan=4), 'text'):
                 week += '\n'
                 week += '{0}/{1}'.format(row.find('th', colspan=4).text.upper(), 'нечетная неделя') + '\n'
-
+                temp = week
             if hasattr(row.find('td', width='1%'), 'text'):
                 if hasattr(row.find('td', class_='nobr'), 'text'):
                     if hasattr(row.find('td', width='40%').find('b'), 'text'):
@@ -119,7 +119,7 @@ def get_timetable_week(html, type='текущая неделя'):
             if hasattr(row.find('th', colspan=4), 'text'):
                 week += '\n'
                 week += '{0}/{1}'.format(row.find('th', colspan=4).text.upper(), 'четная неделя') + '\n'
-
+                temp = week
             if hasattr(row.find('td', width='1%'), 'text'):
                 if hasattr(row.find('td', class_='nobr'), 'text'):
                     if hasattr(row.find('td', width='40%'), 'text'):
@@ -147,6 +147,8 @@ def get_timetable_week(html, type='текущая неделя'):
                                                                              row.find('td', class_='nobr').text,
                                                                              a.find('b').text) + '\n'
 
+    if week == '' or week == temp:
+        week = group + '\n' + 'Расписания на эту неделю нет'
     return week
 
 
@@ -241,7 +243,7 @@ def get_timetable_day(html, day):
                 break
 
     if timetable_day == '' + group + '\n' or timetable_day == temp:
-        timetable_day = 'Расписания на этот день нет'
+        timetable_day = group + '\n' + 'Расписания на этот день нет'
     return timetable_day
 
 
@@ -308,7 +310,7 @@ def get_timetable_today(html):
                 break
 
     if timetable_day == '' + group + '\n' or timetable_day == temp:
-        timetable_day += 'Расписания на этот день нет'
+        timetable_day += 'Расписания на сегодня нет'
     return timetable_day
 
 
@@ -465,7 +467,7 @@ def get_timetable_tomorrow(html):
                     break
 
     if timetable_day == '' + group + '\n' or timetable_day == temp:
-        timetable_day += 'Расписания на этот день нет'
+        timetable_day += 'Расписания на завтра нет'
     return timetable_day
 
 
@@ -490,13 +492,15 @@ def user_massages_handler(chat_id, message):
             send_message(chat_id, 'Такой команды нет')
 
     # Расписание на сегодня
-    elif re.fullmatch(r'\w{2,3}\d{2}-\w+ сегодня', message):
+    elif re.fullmatch(r'\w{2,3}\d{2}-\w+ сегодня', message) or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+ сегодня', message) or re.fullmatch(
+            r'\w{2,3}\d{2}-\w+/\w+ сегодня', message):
         start = message.index(' ')
         number_of_group = message[:start]
         send_message(chat_id, get_timetable_today(get_html(get_group_url(number_of_group))))
 
     # Расписание на завтра
-    elif re.fullmatch(r'\w{2,3}\d{2}-\w+ завтра', message):
+    elif re.fullmatch(r'\w{2,3}\d{2}-\w+ завтра', message) or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+ завтра', message) or re.fullmatch(
+            r'\w{2,3}\d{2}-\w+/\w+ завтра', message):
         start = message.index(' ')
         number_of_group = message[:start]
         send_message(chat_id, get_timetable_tomorrow(get_html(get_group_url(number_of_group))))
