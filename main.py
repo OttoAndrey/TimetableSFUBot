@@ -22,8 +22,9 @@ def get_html(url):
 
 
 def get_teacher_url(message):
+    message = message.replace('.', '')
     message = message.split(' ')
-    teacher_url = 'http://edu.sfu-kras.ru/timetable?teacher={0}+{1}+{2}'.format(message[0], message[1], message[2])
+    teacher_url = 'http://edu.sfu-kras.ru/timetable?teacher={0}+{1}.+{2}.'.format(message[0], message[1], message[2])
     return teacher_url
 
 
@@ -188,6 +189,9 @@ def get_timetable_teacher(html, type='текущая неделя'):
                                         'b').findNextSibling(
                                         'a').text) + '\n'
 
+    if week == teacher_name + '\n':
+        week = 'Расписание на преподавателя нет'
+
     return week
 
 
@@ -228,7 +232,6 @@ def get_timetable_day(html, day):
                                                 row.find('td', class_='light',
                                                          width='40%').find(
                                                     'b').findNextSibling('a').text) + '\n'
-
                                         else:
                                             timetable_day += u'\U00002B55' + '{0} {1} {2}'.format(
                                                 row.find('td', width='1%').text,
@@ -295,7 +298,6 @@ def get_timetable_today(html):
                                                 row.find('td', class_='light',
                                                          width='40%').find(
                                                     'b').findNextSibling('a').text) + '\n'
-
                                         else:
                                             timetable_day += u'\U00002B55' + '{0} {1} {2}'.format(
                                                 row.find('td', width='1%').text,
@@ -304,7 +306,7 @@ def get_timetable_today(html):
                                                          width='40%').find(
                                                     'b').text) + '\n'
                         row = row.findNext('tr')
-                except(AttributeError):
+                except AttributeError:
                     pass
 
                 break
@@ -539,7 +541,8 @@ def user_massages_handler(chat_id, message):
                 send_message(chat_id, 'Неправильно составлен запрос')
 
     # Расписание преподавателя на неделю
-    elif re.fullmatch(r'\w+ \w. \w.', message):
+    elif re.fullmatch(r'\w+ \w. \w.', message) or re.fullmatch(r'\w+ \w \w', message) \
+            or re.fullmatch(r'\w+ \w. \w', message):
         send_message(chat_id, get_timetable_teacher(get_html(get_teacher_url(message))))
 
     else:
