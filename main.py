@@ -29,7 +29,7 @@ def get_teacher_url(message):
 
 
 def get_group_url(number_of_group):
-    f = open('text')
+    f = open('text', encoding='utf-8')
     group_url = 'Не удалось найти группу'
     for line in f:
         if number_of_group.lower() in line:
@@ -40,6 +40,8 @@ def get_group_url(number_of_group):
 
 
 def get_timetable_week(html, type='текущая неделя'):
+    odd = ['нечет', 'нечетная', 'нечетная неделя', 'нечёт', 'нечётная', 'нечётная неделя', 'н', '1']
+    even = ['чет', 'четная', 'четная неделя', 'чёт', 'чётная', 'чётная неделя', 'ч', '2']
     soup = BeautifulSoup(html, 'lxml')
     type_of_week = soup.find('div', class_='content').find('p').find('b').text[5:]
     table = soup.find('table', class_='table timetable')
@@ -82,7 +84,7 @@ def get_timetable_week(html, type='текущая неделя'):
                                                                                       width='40%').find(
                                                                                  'b').text) + '\n'
 
-    elif type in ['нечет', 'нечетная', 'нечетная неделя', 'нечёт', 'нечётная', 'нечётная неделя', '1']:
+    elif type in odd:
         # нечетная неделя
         for row in table:
             if hasattr(row.find('th', colspan=4), 'text'):
@@ -114,7 +116,7 @@ def get_timetable_week(html, type='текущая неделя'):
                                                                              row.find('td', class_='nobr').text,
                                                                              row.find('td', width='40%').find(
                                                                                  'b').text) + '\n'
-    elif type in ['чет', 'четная', 'четная неделя', 'чёт', 'чётная', 'чётная неделя', '2']:
+    elif type in even:
         # четная неделя
         for row in table:
             if hasattr(row.find('th', colspan=4), 'text'):
@@ -483,8 +485,8 @@ def user_massages_handler(chat_id, message):
                 'пт': 'пятница',
                 'сб': 'суббота'}
 
-    types_of_week = ['нечет', 'нечетная', 'нечетная неделя', 'нечёт', 'нечётная', 'нечётная неделя' '1', 'чет',
-                     'четная', 'четная неделя', 'чёт', 'чётная', 'чётная неделя', '2']
+    types_of_week = ['нечет', 'нечетная', 'нечетная неделя', 'нечёт', 'нечётная', 'нечётная неделя', 'н', '1', 'чет',
+                     'четная', 'четная неделя', 'чёт', 'чётная', 'чётная неделя', 'ч', '2']
 
     # Команды
     if re.fullmatch(r'/\w+', message):
@@ -550,6 +552,7 @@ def user_massages_handler(chat_id, message):
 
 
 # ////////////////////////////
+
 
 def send_message(chat_id, text='Не удалось найти группу'):
     url = URL + 'sendMessage'
