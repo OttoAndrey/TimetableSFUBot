@@ -1,14 +1,16 @@
 import requests
 import os
 import re
+import psycopg2
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 from flask_sslify import SSLify
 from bs4 import BeautifulSoup
 
-token = os.getenv('TOKEN')
-URL = 'https://api.telegram.org/bot' + token + '/'
-proxies = {'https': 'http://193.85.228.180:	36247'}
+TOKEN = os.getenv('TOKEN')
+DATABASE_URL = os.environ['DATABASE_URL']
+URL = 'https://api.telegram.org/bot' + TOKEN + '/'
+proxies = {'https': 'http://212.184.186.146:8080'}
 
 app = Flask(__name__)
 sslify = SSLify(app)
@@ -490,10 +492,53 @@ def user_massages_handler(chat_id, message):
 
     # Команды
     if re.fullmatch(r'/\w+', message):
+        connect = psycopg2.connect(DATABASE_URL, sslmode='require')
+        cursor = connect.cursor()
+        cursor.execute("SELECT * FROM users WHERE chat_id=(%(first)s)", {'first': chat_id})
+        number_of_group = ''
+
+        try:
+            number_of_group = cursor.fetchone()[3]
+        except:
+            pass
+
         if message == '/start':
             send_message(chat_id, 'Тут должно быть вступление, но его пока нет')
+        elif message == '/help':
+            send_message(chat_id, """Команды:
+                                     /help
+                                     /registration - зарегистрировать группу для использования сокращенных команд
+                                     Сокращенные команды:
+                                     /today - расписание на сегодня
+                                     /tomorrow - расписание на завтра
+                                     /week - расписание на текущую неделю
+                                     /week_odd - нечётная неделя
+                                     /week_even - чётная неделя
+                                     """)
+        elif message == '/registration':
+            cursor.execute("SELECT * FROM users WHERE chat_id=(%(first)s)", {'first': chat_id})
+
+            if cursor.fetchone() is None:
+                cursor.execute("INSERT INTO users (chat_id, last_message) VALUES (%(first)s, %(second)s)",
+                               {'first': chat_id, 'second': message})
+
+            send_message(chat_id, 'Введите номер группы')
+        elif message == '/week':
+            send_message(chat_id, get_timetable_week(get_html(get_group_url(number_of_group))))
+        elif message == '/today':
+            send_message(chat_id, get_timetable_today(get_html(get_group_url(number_of_group))))
+        elif message == '/tomorrow':
+            send_message(chat_id, get_timetable_tomorrow(get_html(get_group_url(number_of_group))))
+        elif message == '/week_odd':
+            send_message(chat_id, get_timetable_week(get_html(get_group_url(number_of_group)), 'нечет'))
+        elif message == '/week_even':
+            send_message(chat_id, get_timetable_week(get_html(get_group_url(number_of_group)), 'чет'))
         else:
             send_message(chat_id, 'Такой команды нет')
+
+        connect.commit()
+        cursor.close()
+        connect.close()
 
     # Расписание на сегодня
     elif re.fullmatch(r'\w{2,3}\d{2}-\w+ сегодня', message) or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+ сегодня', message) or re.fullmatch(
@@ -516,7 +561,35 @@ def user_massages_handler(chat_id, message):
         if group_url == 'Не удалось найти группу':
             send_message(chat_id, group_url)
         elif group_url != 'Не удалось найти группу':
-            send_message(chat_id, get_timetable_week(get_html(group_url)))
+            connect = psycopg2.connect(DATABASE_URL, sslmode='require')
+            cursor = connect.cursor()
+            cursor.execute("SELECT * FROM users WHERE chat_id=(%(first)s)", {'first': chat_id})
+            last_message = ''
+
+            try:
+                last_message = cursor.fetchone()[2]
+            except:
+                pass
+
+            if last_message == '/registration':
+                cursor.execute("UPDATE users SET number_of_group=(%(first)s) WHERE chat_id=(%(second)s)",
+                               {'first': message, 'second': chat_id})
+                send_message(chat_id, """Расписание успешно установлено
+                                         
+                                         Теперь вы можете использовать сокращенные команды через слэш
+                                         Команды: 
+                                         /today
+                                         /tomorrow
+                                         /week
+                                         /week_odd
+                                         /week_even
+                                         /help""")
+            else:
+                send_message(chat_id, get_timetable_week(get_html(group_url)))
+
+            connect.commit()
+            cursor.close()
+            connect.close()
 
     # Расписание на определенную неделю и на определенный день недели
     elif re.search(r'\w{2,3}\d{2}-\w+ \w+', message) or re.search(r'\w{2,3}\d{2}-\w+-\w+ \w+', message) or re.search(
@@ -550,6 +623,15 @@ def user_massages_handler(chat_id, message):
     else:
         send_message(chat_id, 'Неправильно составлен запрос')
 
+    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
+    cursor = connect.cursor()
+
+    cursor.execute("UPDATE users SET last_message=(%(first)s) WHERE chat_id=(%(second)s)",
+                   {'first': message, 'second': chat_id})
+
+    connect.commit()
+    cursor.close()
+    connect.close()
 
 # ////////////////////////////
 
