@@ -490,10 +490,13 @@ def user_massages_handler(chat_id, message):
     types_of_week = ['нечет', 'нечетная', 'нечетная неделя', 'нечёт', 'нечётная', 'нечётная неделя', 'н', '1', 'чет',
                      'четная', 'четная неделя', 'чёт', 'чётная', 'чётная неделя', 'ч', '2']
 
+    # connect = psycopg2.connect(DATABASE_URL, sslmode='require')
+    connect = psycopg2.connect(dbname='test', user='postgres', host='localhost')
+    cursor = connect.cursor()
+
     # Команды
     if re.fullmatch(r'/\w+', message):
-        connect = psycopg2.connect(DATABASE_URL, sslmode='require')
-        cursor = connect.cursor()
+
         cursor.execute("SELECT * FROM users WHERE chat_id=(%(first)s)", {'first': chat_id})
         number_of_group = ''
 
@@ -593,10 +596,6 @@ def user_massages_handler(chat_id, message):
         else:
             send_message(chat_id, 'Такой команды нет')
 
-        connect.commit()
-        cursor.close()
-        connect.close()
-
     # Расписание на сегодня
     elif re.fullmatch(r'\w{2,3}\d{2}-\w+ сегодня', message) or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+ сегодня', message) or re.fullmatch(
             r'\w{2,3}\d{2}-\w+/\w+ сегодня', message):
@@ -618,8 +617,6 @@ def user_massages_handler(chat_id, message):
         if group_url == 'Не удалось найти группу':
             send_message(chat_id, group_url)
         elif group_url != 'Не удалось найти группу':
-            connect = psycopg2.connect(DATABASE_URL, sslmode='require')
-            cursor = connect.cursor()
             cursor.execute("SELECT * FROM users WHERE chat_id=(%(first)s)", {'first': chat_id})
             last_message = ''
 
@@ -644,10 +641,6 @@ def user_massages_handler(chat_id, message):
 """)
             else:
                 send_message(chat_id, get_timetable_week(get_html(group_url)))
-
-            connect.commit()
-            cursor.close()
-            connect.close()
 
     # Расписание на определенную неделю и на определенный день недели
     elif re.search(r'\w{2,3}\d{2}-\w+ \w+', message) or re.search(r'\w{2,3}\d{2}-\w+-\w+ \w+', message) or re.search(
@@ -680,9 +673,6 @@ def user_massages_handler(chat_id, message):
 
     else:
         send_message(chat_id, 'Неправильно составлен запрос')
-
-    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
-    cursor = connect.cursor()
 
     cursor.execute("UPDATE users SET last_message=(%(first)s) WHERE chat_id=(%(second)s)",
                    {'first': message, 'second': chat_id})
