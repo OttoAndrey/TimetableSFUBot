@@ -64,7 +64,7 @@ def get_timetable_week(html, type='текущая неделя'):
                     if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
                         if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
                             if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
-                                week += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                week += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                     row.find('td', width='1%').text,
                                     row.find('td', class_='nobr').text,
                                     row.find('td', class_='light',
@@ -98,7 +98,7 @@ def get_timetable_week(html, type='текущая неделя'):
                     if hasattr(row.find('td', width='40%').find('b'), 'text'):
                         if hasattr(row.find('td', width='40%'), 'contents'):
                             if hasattr(row.find('td', width='40%').find('em'), 'text'):
-                                week += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                week += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                     row.find('td', width='1%').text,
                                     row.find('td', class_='nobr').text,
                                     row.find('td',
@@ -138,7 +138,7 @@ def get_timetable_week(html, type='текущая неделя'):
 
                         if hasattr(row.find('td', width='40%'), 'contents'):
                             if hasattr(row.find('em'), 'text'):
-                                week += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                week += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                     row.find('td', width='1%').text,
                                     row.find('td', class_='nobr').text,
                                     a.find('b').text,
@@ -224,7 +224,7 @@ def get_timetable_day(html, day):
                                 if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
                                     if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
                                         if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
-                                            timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                            timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                                 row.find('td', width='1%').text,
                                                 row.find('td', class_='nobr').text,
                                                 row.find('td', class_='light',
@@ -290,7 +290,7 @@ def get_timetable_today(html):
                                 if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
                                     if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
                                         if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
-                                            timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                            timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                                 row.find('td', width='1%').text,
                                                 row.find('td', class_='nobr').text,
                                                 row.find('td', class_='light',
@@ -367,7 +367,7 @@ def get_timetable_tomorrow(html):
 
                                         if hasattr(row.find('td', width='40%'), 'contents'):
                                             if hasattr(row.find('em'), 'text'):
-                                                timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                                timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                                     row.find('td', width='1%').text,
                                                     row.find('td', class_='nobr').text,
                                                     a.find('b').text,
@@ -402,7 +402,7 @@ def get_timetable_tomorrow(html):
                                     if hasattr(row.find('td', width='40%').find('b'), 'text'):
                                         if hasattr(row.find('td', width='40%'), 'contents'):
                                             if hasattr(row.find('td', width='40%').find('em'), 'text'):
-                                                timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                                timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                                     row.find('td', width='1%').text,
                                                     row.find('td', class_='nobr').text,
                                                     row.find('td',
@@ -446,7 +446,7 @@ def get_timetable_tomorrow(html):
                                     if hasattr(row.find('td', class_='light', width='40%').find('b'), 'text'):
                                         if hasattr(row.find('td', class_='light', width='40%'), 'contents'):
                                             if hasattr(row.find('td', class_='light', width='40%').find('em'), 'text'):
-                                                timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Аудитория: {5}'.format(
+                                                timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                                     row.find('td', width='1%').text,
                                                     row.find('td', class_='nobr').text,
                                                     row.find('td', class_='light',
@@ -503,18 +503,70 @@ def user_massages_handler(chat_id, message):
             pass
 
         if message == '/start':
-            send_message(chat_id, 'Тут должно быть вступление, но его пока нет')
+            send_message(chat_id, """
+Этот бот поможет вам узнать расписание групп и преподавателей Сибирского Федерального университета
+
+Используйте команду /registration, чтобы затем использовать другие команды
+
+Если ваша группа разделена на подгруппы, например "ВЦ18-01АСУ (1 подгруппа) и ВЦ18-01АСУ (2 подгруппа)",
+то достаточно будет написать "вц18-01асу1" или "вц18-01асу2"
+
+Чтобы узнать расписание преподавателя надо написать фамилию и инициалы через пробел
+например: "Кукарцев в в"
+
+Также можно просто использовать номер группы, чтобы получить расписание
+например: "ки15-17б" - распсиание на текущую неделю
+
+Чтобы получить расписание на сегодня
+например: "сб18-11б сегодня"
+
+Чтобы получить расписание на завтра
+например: "ки15-16б завтра"
+
+Также можно узнать расписание на нечетную(1) и четную неделю(2)
+например: "ки17-03б 1" - расписание на нечетную неделю
+"ки17-03б 2" - расписание на четную неделю
+
+Также можно узнать расписание на определенный день через сокращенные названия дней (пн, вт, ср, чт, пт, сб)
+например: "ки15-17б вт" - расписание на вторник
+"сб15-12б пт" - расписание на пятницу
+""")
         elif message == '/help':
-            send_message(chat_id, """Команды:
-                                     /help
-                                     /registration - зарегистрировать группу для использования сокращенных команд
-                                     Сокращенные команды:
-                                     /today - расписание на сегодня
-                                     /tomorrow - расписание на завтра
-                                     /week - расписание на текущую неделю
-                                     /week_odd - нечётная неделя
-                                     /week_even - чётная неделя
-                                     """)
+            send_message(chat_id, """
+Используйте команду /registration, чтобы затем использовать другие команды
+
+Если ваша группа разделена на подгруппы, например "ВЦ18-01АСУ (1 подгруппа) и ВЦ18-01АСУ (2 подгруппа)",
+то достаточно будет написать "вц18-01асу1" или "вц18-01асу2"
+
+Чтобы узнать расписание преподавателя надо написать фамилию и инициалы через пробел
+например: "Кукарцев в в"
+
+Также можно просто использовать номер группы, чтобы получить расписание
+например: "ки15-17б" - распсиание на текущую неделю
+
+Чтобы получить расписание на сегодня
+например: "сб18-11б сегодня"
+
+Чтобы получить расписание на завтра
+например: "ки15-16б завтра"
+
+Также можно узнать расписание на нечетную(1) и четную неделю(2)
+например: "ки17-03б 1" - расписание на нечетную неделю
+"ки17-03б 2" - расписание на четную неделю
+
+Также можно узнать расписание на определенный день через сокращенные названия дней (пн, вт, ср, чт, пт, сб)
+например: "ки15-17б вт" - расписание на вторник
+"сб15-12б пт" - расписание на пятницу
+
+Команды:
+/help - информация по командам
+/registration - зарегистрировать группу для использования сокращенных команд
+/today - расписание на сегодня
+/tomorrow - расписание на завтра
+/week - расписание на текущую неделю
+/week_odd - нечётная неделя
+/week_even - чётная неделя
+""")
         elif message == '/registration':
             cursor.execute("SELECT * FROM users WHERE chat_id=(%(first)s)", {'first': chat_id})
 
@@ -522,7 +574,12 @@ def user_massages_handler(chat_id, message):
                 cursor.execute("INSERT INTO users (chat_id, last_message) VALUES (%(first)s, %(second)s)",
                                {'first': chat_id, 'second': message})
 
-            send_message(chat_id, 'Введите номер группы')
+            send_message(chat_id, """
+Введите номер группы
+
+Если ваша группа разделена на подгруппы, например "ВЦ18-01АСУ (1 подгруппа) и ВЦ18-01АСУ (2 подгруппа)",
+то достаточно будет написать "вц18-01асу1" или "вц18-01асу2"
+""")
         elif message == '/week':
             send_message(chat_id, get_timetable_week(get_html(get_group_url(number_of_group))))
         elif message == '/today':
@@ -574,16 +631,17 @@ def user_massages_handler(chat_id, message):
             if last_message == '/registration':
                 cursor.execute("UPDATE users SET number_of_group=(%(first)s) WHERE chat_id=(%(second)s)",
                                {'first': message, 'second': chat_id})
-                send_message(chat_id, """Расписание успешно установлено
-                                         
-                                         Теперь вы можете использовать сокращенные команды через слэш
-                                         Команды: 
-                                         /today
-                                         /tomorrow
-                                         /week
-                                         /week_odd
-                                         /week_even
-                                         /help""")
+                send_message(chat_id, """
+Расписание успешно установлено
+
+Теперь вам доступны команды
+Команды:
+/today
+/tomorrow
+/week
+/week_odd
+/week_even  
+""")
             else:
                 send_message(chat_id, get_timetable_week(get_html(group_url)))
 
