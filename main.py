@@ -600,6 +600,8 @@ def user_massages_handler(chat_id, message):
                                {'first': chat_id, 'second': message})
 
             send_message(chat_id, REGISTRATION)
+        elif number_of_group == '':
+            send_message(chat_id, 'Воспользуйтесь регистарицей, чтобы использовать короткие команды')
         elif message == '/week':
             send_message(chat_id, get_timetable_week(get_html(get_group_url(number_of_group))))
         elif message == '/today':
