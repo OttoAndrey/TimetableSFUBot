@@ -2,6 +2,9 @@ import requests
 import os
 import re
 import psycopg2
+import schedule
+import threading
+import time
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 from flask_sslify import SSLify
@@ -9,6 +12,7 @@ from bs4 import BeautifulSoup
 
 TOKEN = os.getenv('TOKEN')
 DATABASE_URL = os.environ['DATABASE_URL']
+TOKEN = os.getenv('TOKEN')
 URL = 'https://api.telegram.org/bot' + TOKEN + '/'
 proxies = {'https': 'http://212.184.186.146:8080'}
 
@@ -78,6 +82,7 @@ HELP = """
 /week - расписание на текущую неделю
 /week_odd - нечётная неделя
 /week_even - чётная неделя
+/subscription - подписка на рассылку
 """
 
 REGISTRATION = """
@@ -99,7 +104,9 @@ SUCCESS_REGISTRATION = """
 /week_even  
 """
 
+
 # ////////////////////////
+
 
 def get_html(url):
     html = requests.get(url)
@@ -560,6 +567,30 @@ def get_timetable_tomorrow(html):
     return timetable_day
 
 
+def subscription(chat_id):
+    answer = ''
+    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
+    # connect = psycopg2.connect(dbname='test', user='postgres', host='localhost')
+    cursor = connect.cursor()
+    cursor.execute("SELECT * FROM users WHERE chat_id=(%(first)s)", {'first': chat_id})
+    current_subscription = cursor.fetchone()[4]
+
+    if current_subscription == False:
+        cursor.execute("UPDATE users SET subscription=(%(first)s) WHERE chat_id=(%(second)s)",
+                       {'first': True, 'second': chat_id})
+        answer = 'Подписка подключена. Теперь вы будете получать уведомление о завтрашнем расписании'
+    elif current_subscription == True:
+        cursor.execute("UPDATE users SET subscription=(%(first)s) WHERE chat_id=(%(second)s)",
+                       {'first': False, 'second': chat_id})
+        answer = 'Подписка отключена'
+
+    connect.commit()
+    cursor.close()
+    connect.close()
+
+    return answer
+
+
 def user_massages_handler(chat_id, message):
     message = message.lower().lstrip().rstrip()
 
@@ -573,8 +604,7 @@ def user_massages_handler(chat_id, message):
     types_of_week = ['нечет', 'нечетная', 'нечетная неделя', 'нечёт', 'нечётная', 'нечётная неделя', 'н', '1', 'чет',
                      'четная', 'четная неделя', 'чёт', 'чётная', 'чётная неделя', 'ч', '2']
 
-    # connect = psycopg2.connect(DATABASE_URL, sslmode='require')
-    connect = psycopg2.connect(dbname='test', user='postgres', host='localhost')
+    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
     cursor = connect.cursor()
 
     # Команды
@@ -604,6 +634,8 @@ def user_massages_handler(chat_id, message):
             send_message(chat_id, 'Воспользуйтесь регистарицей, чтобы использовать короткие команды')
         elif get_group_url(number_of_group) == 'Не удалось найти группу':
             send_message(chat_id, 'Не удалось найти группу. Возможно её не существует')
+        elif message == '/subscription':
+            send_message(chat_id, subscription(chat_id))
         elif message == '/week':
             send_message(chat_id, get_timetable_week(get_html(get_group_url(number_of_group))))
         elif message == '/today':
@@ -691,6 +723,34 @@ def user_massages_handler(chat_id, message):
     connect.commit()
     cursor.close()
     connect.close()
+
+
+def every_day_timetable():
+    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
+    cursor = connect.cursor()
+    cursor.execute("SELECT chat_id, number_of_group FROM users WHERE subscription=(%(first)s)", {'first': True})
+
+    all_subs = cursor.fetchall()
+
+    for sub in all_subs:
+        send_message(sub[0], get_timetable_tomorrow(get_html(get_group_url(sub[1]))))
+
+    connect.commit()
+    cursor.close()
+    connect.close()
+
+
+schedule.every().day.at("21:00").do(every_day_timetable)
+
+
+def schedule_run():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+t = threading.Thread(target=schedule_run, name='тест')
+t.start()
 
 # ////////////////////////////
 
