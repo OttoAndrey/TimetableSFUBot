@@ -15,11 +15,12 @@ MarkupSafe==1.1.0
 openpyxl==2.6.2
 psycopg2==2.8.2
 requests==2.21.0
+schedule==0.6.0
 selenium==3.141.0
 six==1.12.0
 soupsieve==1.7.3
 transliterate==1.10.2
-urllib3==1.25
+urllib3==1.24.2
 virtualenv==16.3.0
 Werkzeug==0.14.1
 xlrd==1.2.0
