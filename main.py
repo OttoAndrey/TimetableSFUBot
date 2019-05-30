@@ -660,8 +660,21 @@ def every_day_timetable():
 
     all_subs = cursor.fetchall()
 
+    tomorrow = datetime.now() + timedelta(days=1)
+    date = tomorrow.strftime('%d.%m.%Y')
+    day = tomorrow.strftime('%A')
+    days_of_the_week = {'Monday': 'Понедельник', 'Tuesday': 'Вторник', 'Wednesday': 'Среда', 'Thursday': 'Четверг',
+                        'Friday': 'Пятница', 'Saturday': 'Суббота', 'Sunday': 'Воскресенье'}
+
+    for key, value in days_of_the_week.items():
+        if day == key:
+            day = value
+            break
+
+    answer = 'Ваше расписание на завтра ({0} {1})'.format(date, day) + '\n'
+
     for sub in all_subs:
-        send_message(sub[0], get_timetable_tomorrow(get_html(get_group_url(sub[1]))))
+        send_message(sub[0], answer + get_timetable_tomorrow(get_html(get_group_url(sub[1]))))
 
     connect.commit()
     cursor.close()
