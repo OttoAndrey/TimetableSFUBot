@@ -36,7 +36,7 @@ def get_teacher_url(message):
 
 
 def get_group_url(number_of_group):
-    f = open('text', encoding='utf-8')
+    f = open('urls_of_group', encoding='utf-8')
     group_url = 'Не удалось найти группу'
     for line in f:
         if number_of_group.lower() in line:
@@ -668,7 +668,7 @@ def every_day_timetable():
     connect.close()
 
 
-schedule.every().day.at("21:00").do(every_day_timetable)
+schedule.every().day.at("14:00").do(every_day_timetable)
 
 
 def schedule_run():
