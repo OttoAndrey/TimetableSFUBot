@@ -19,91 +19,6 @@ proxies = {'https': 'http://212.184.186.146:8080'}
 app = Flask(__name__)
 sslify = SSLify(app)
 
-START = """
-Этот бот поможет вам узнать расписание групп и преподавателей Сибирского Федерального университета
-
-Используйте команду /registration, чтобы затем использовать другие команды
-
-Если ваша группа разделена на подгруппы, например "ВЦ18-01АСУ (1 подгруппа) и ВЦ18-01АСУ (2 подгруппа)",
-то достаточно будет написать "вц18-01асу1" или "вц18-01асу2"
-
-Чтобы узнать расписание преподавателя надо написать фамилию и инициалы через пробел
-например: "Кукарцев в в"
-
-Также можно просто использовать номер группы, чтобы получить расписание
-например: "ки15-17б" - распсиание на текущую неделю
-
-Чтобы получить расписание на сегодня
-например: "сб18-11б сегодня"
-
-Чтобы получить расписание на завтра
-например: "ки15-16б завтра"
-
-Также можно узнать расписание на нечетную(1) и четную неделю(2)
-например: "ки17-03б 1" - расписание на нечетную неделю
-"ки17-03б 2" - расписание на четную неделю
-
-Также можно узнать расписание на определенный день через сокращенные названия дней (пн, вт, ср, чт, пт, сб)
-например: "ки15-17б вт" - расписание на вторник
-"сб15-12б пт" - расписание на пятницу
-"""
-
-HELP = """
-Используйте команду /registration, чтобы затем использовать другие команды
-
-Если ваша группа разделена на подгруппы, например "ВЦ18-01АСУ (1 подгруппа) и ВЦ18-01АСУ (2 подгруппа)",
-то достаточно будет написать "вц18-01асу1" или "вц18-01асу2"
-
-Чтобы узнать расписание преподавателя надо написать фамилию и инициалы через пробел
-например: "Кукарцев в в"
-
-Также можно просто использовать номер группы, чтобы получить расписание
-например: "ки15-17б" - распсиание на текущую неделю
-
-Чтобы получить расписание на сегодня
-например: "сб18-11б сегодня"
-
-Чтобы получить расписание на завтра
-например: "ки15-16б завтра"
-
-Также можно узнать расписание на нечетную(1) и четную неделю(2)
-например: "ки17-03б 1" - расписание на нечетную неделю
-"ки17-03б 2" - расписание на четную неделю
-
-Также можно узнать расписание на определенный день через сокращенные названия дней (пн, вт, ср, чт, пт, сб)
-например: "ки15-17б вт" - расписание на вторник
-"сб15-12б пт" - расписание на пятницу
-
-Команды:
-/help - информация по командам
-/registration - зарегистрировать группу для использования сокращенных команд
-/today - расписание на сегодня
-/tomorrow - расписание на завтра
-/week - расписание на текущую неделю
-/week_odd - нечётная неделя
-/week_even - чётная неделя
-/subscription - подписка на рассылку
-"""
-
-REGISTRATION = """
-Введите номер группы
-
-Если ваша группа разделена на подгруппы, например "ВЦ18-01АСУ (1 подгруппа) и ВЦ18-01АСУ (2 подгруппа)",
-то достаточно будет написать "вц18-01асу1" или "вц18-01асу2"
-"""
-
-SUCCESS_REGISTRATION = """
-Расписание успешно установлено
-
-Теперь вам доступны команды
-Команды:
-/today
-/tomorrow
-/week
-/week_odd
-/week_even  
-"""
-
 
 # ////////////////////////
 
@@ -591,6 +506,19 @@ def subscription(chat_id):
     return answer
 
 
+def get_text_of_command(message):
+    commands = ['/start', '/help', '/registration', '/success_subscription']
+    answer = ''
+    for command in commands:
+        if message == command:
+            f = open('texts/' + message[1:], encoding='utf-8')
+            for line in f:
+                answer += line
+            f.close()
+            break
+    return answer
+
+
 def user_massages_handler(chat_id, message):
     message = message.lower().lstrip().rstrip()
 
@@ -619,9 +547,9 @@ def user_massages_handler(chat_id, message):
             pass
 
         if message == '/start':
-            send_message(chat_id, START)
+            send_message(chat_id, get_text_of_command(message))
         elif message == '/help':
-            send_message(chat_id, HELP)
+            send_message(chat_id, get_text_of_command(message))
         elif message == '/registration':
             cursor.execute("SELECT * FROM users WHERE chat_id=(%(first)s)", {'first': chat_id})
 
@@ -629,7 +557,7 @@ def user_massages_handler(chat_id, message):
                 cursor.execute("INSERT INTO users (chat_id, last_message) VALUES (%(first)s, %(second)s)",
                                {'first': chat_id, 'second': message})
 
-            send_message(chat_id, REGISTRATION)
+            send_message(chat_id, get_text_of_command(message))
         elif number_of_group == '':
             send_message(chat_id, 'Воспользуйтесь регистарицей, чтобы использовать короткие команды')
         elif get_group_url(number_of_group) == 'Не удалось найти группу':
@@ -681,7 +609,7 @@ def user_massages_handler(chat_id, message):
             if last_message == '/registration':
                 cursor.execute("UPDATE users SET number_of_group=(%(first)s) WHERE chat_id=(%(second)s)",
                                {'first': message, 'second': chat_id})
-                send_message(chat_id, SUCCESS_REGISTRATION)
+                send_message(chat_id, get_text_of_command('/success_registration'))
             else:
                 send_message(chat_id, get_timetable_week(get_html(group_url)))
 
