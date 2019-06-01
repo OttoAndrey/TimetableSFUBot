@@ -687,7 +687,7 @@ schedule.every().day.at("14:00").do(every_day_timetable)
 def schedule_run():
     while True:
         schedule.run_pending()
-        time.sleep(1)
+        time.sleep(2)
 
 
 t = threading.Thread(target=schedule_run, name='тест')
