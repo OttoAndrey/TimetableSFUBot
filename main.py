@@ -24,11 +24,19 @@ sslify = SSLify(app)
 
 
 def get_html(url):
+    """
+    Получает на вход ссылку на страницу
+    Возвращает html-текст этой страницы
+    """
     html = requests.get(url)
     return html.text
 
 
 def get_teacher_url(message):
+    """
+    Получает на вход сообщение пользователя с фамилией преподавателя
+    Возвращает ссылку на расписание преподавателя
+    """
     message = message.replace('.', '')
     message = message.split(' ')
     teacher_url = 'http://edu.sfu-kras.ru/timetable?teacher={0}+{1}.+{2}.'.format(message[0], message[1], message[2])
@@ -36,6 +44,10 @@ def get_teacher_url(message):
 
 
 def get_group_url(number_of_group):
+    """
+    Получает на вход номер группы
+    Возвращает ссылку на расписание группы
+    """
     f = open('urls_of_group', encoding='utf-8')
     group_url = 'Не удалось найти группу'
     for line in f:
@@ -47,6 +59,10 @@ def get_group_url(number_of_group):
 
 
 def get_timetable_week(html, type='текущая неделя'):
+    """
+    Получает на вход html-текст страницы группы и тип недели, который нужно сформировать
+    Возвращает расписание на неделю
+    """
     odd = ['нечет', 'нечетная', 'нечетная неделя', 'нечёт', 'нечётная', 'нечётная неделя', 'н', '1']
     even = ['чет', 'четная', 'четная неделя', 'чёт', 'чётная', 'чётная неделя', 'ч', '2']
     soup = BeautifulSoup(html, 'lxml')
@@ -90,7 +106,6 @@ def get_timetable_week(html, type='текущая неделя'):
                                                                              row.find('td', class_='light',
                                                                                       width='40%').find(
                                                                                  'b').text) + '\n'
-
     elif type in odd:
         # нечетная неделя
         for row in table:
@@ -163,6 +178,10 @@ def get_timetable_week(html, type='текущая неделя'):
 
 
 def get_timetable_teacher(html, type='текущая неделя'):
+    """
+    Получает на вход html-текст страницы преподавателя и тип недели, который нужно сформировать
+    Возвращает расписание преподавателя на неделю
+    """
     soup = BeautifulSoup(html, 'lxml')
     teacher_name = soup.find('h3').text.title()
     type_of_week = soup.find('div', class_='content').find('p').find('b').text[5:]
@@ -205,6 +224,10 @@ def get_timetable_teacher(html, type='текущая неделя'):
 
 
 def get_timetable_day(html, day):
+    """
+    Получает на вход html-текст страницы группы и день, который нужно сформировать
+    Возвращает расписание на определенный день
+    """
     soup = BeautifulSoup(html, 'lxml')
     type_of_week = soup.find('div', class_='content').find('p').find('b').text[5:]
     table = soup.find('table', class_='table timetable')
@@ -260,6 +283,10 @@ def get_timetable_day(html, day):
 
 
 def get_timetable_today(html):
+    """
+    Получает на вход html-текст страницы группы
+    Возвращает расписание на текущий день
+    """
     now = datetime.now()
     day = now.strftime('%A')
     days_of_the_week = {'Monday': 'Понедельник', 'Tuesday': 'Вторник', 'Wednesday': 'Среда', 'Thursday': 'Четверг',
@@ -326,6 +353,10 @@ def get_timetable_today(html):
 
 
 def get_timetable_tomorrow(html):
+    """
+    Получает на вход html-текст страницы группы
+    Возвращает расписание на завтрашний день
+    """
     now = datetime.now()
     tomorrow = now + timedelta(days=1)
     day = tomorrow.strftime('%A')
@@ -483,6 +514,11 @@ def get_timetable_tomorrow(html):
 
 
 def subscription(chat_id):
+    """
+    Получает на вход chat_id пользователя
+    Меняет поле subscription в базе данных
+    Возвращает ответ о состоянии подписки пользователя
+    """
     answer = ''
     connect = psycopg2.connect(DATABASE_URL, sslmode='require')
     # connect = psycopg2.connect(dbname='test', user='postgres', host='localhost')
@@ -507,6 +543,10 @@ def subscription(chat_id):
 
 
 def get_text_of_command(message):
+    """
+    Получает на вход команду пользователя
+    Возвращает ответ в соответствии с командой
+    """
     commands = ['/start', '/help', '/registration', '/success_subscription']
     answer = ''
     for command in commands:
@@ -520,6 +560,10 @@ def get_text_of_command(message):
 
 
 def user_massages_handler(chat_id, message):
+    """
+    Получает на вход chat_id и сообщение пользователя
+    В соответствии с сообщением формирует ответ
+    """
     message = message.lower().lstrip().rstrip()
 
     dic_days = {'пн': 'понедельник',
@@ -654,6 +698,9 @@ def user_massages_handler(chat_id, message):
 
 
 def every_day_timetable():
+    """
+    Ежедневная рассылка расписания
+    """
     connect = psycopg2.connect(DATABASE_URL, sslmode='require')
     cursor = connect.cursor()
     cursor.execute("SELECT chat_id, number_of_group FROM users WHERE subscription=(%(first)s)", {'first': True})
