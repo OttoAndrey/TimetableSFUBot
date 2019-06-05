@@ -10,11 +10,9 @@ from flask import Flask, request, jsonify
 from flask_sslify import SSLify
 from bs4 import BeautifulSoup
 
-TOKEN = os.getenv('TOKEN')
 DATABASE_URL = os.environ['DATABASE_URL']
 TOKEN = os.getenv('TOKEN')
 URL = 'https://api.telegram.org/bot' + TOKEN + '/'
-proxies = {'https': 'http://212.184.186.146:8080'}
 
 app = Flask(__name__)
 sslify = SSLify(app)
@@ -88,24 +86,16 @@ def get_timetable_week(html, type='текущая неделя'):
                                 week += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                     row.find('td', width='1%').text,
                                     row.find('td', class_='nobr').text,
-                                    row.find('td', class_='light',
-                                             width='40%').find(
-                                        'b').text,
-                                    row.find('td', class_='light',
-                                             width='40%').contents[1],
-                                    row.find('td', class_='light',
-                                             width='40%').find(
-                                        'em').text,
-                                    row.find('td', class_='light',
-                                             width='40%').find(
-                                        'b').findNextSibling(
-                                        'a').text) + '\n'
+                                    row.find('td', class_='light', width='40%').find('b').text,
+                                    row.find('td', class_='light', width='40%').contents[1],
+                                    row.find('td', class_='light', width='40%').find('em').text,
+                                    row.find('td', class_='light', width='40%').find('b').findNextSibling('a').text) + \
+                                        '\n '
                             else:
                                 week += u'\U00002B55' + '{0} {1} {2}'.format(row.find('td', width='1%').text,
                                                                              row.find('td', class_='nobr').text,
-                                                                             row.find('td', class_='light',
-                                                                                      width='40%').find(
-                                                                                 'b').text) + '\n'
+                                                                             row.find('td', class_='light', width='40%')
+                                                                             .find('b').text) + '\n'
     elif type in odd:
         # нечетная неделя
         for row in table:
@@ -121,23 +111,15 @@ def get_timetable_week(html, type='текущая неделя'):
                                 week += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                     row.find('td', width='1%').text,
                                     row.find('td', class_='nobr').text,
-                                    row.find('td',
-                                             width='40%').find(
-                                        'b').text,
-                                    row.find('td',
-                                             width='40%').contents[1],
-                                    row.find('td',
-                                             width='40%').find(
-                                        'em').text,
-                                    row.find('td',
-                                             width='40%').find(
-                                        'b').findNextSibling(
-                                        'a').text) + '\n'
+                                    row.find('td', width='40%').find('b').text,
+                                    row.find('td', width='40%').contents[1],
+                                    row.find('td', width='40%').find('em').text,
+                                    row.find('td', width='40%').find('b').findNextSibling('a').text) + '\n'
                             else:
                                 week += u'\U00002B55' + '{0} {1} {2}'.format(row.find('td', width='1%').text,
                                                                              row.find('td', class_='nobr').text,
-                                                                             row.find('td', width='40%').find(
-                                                                                 'b').text) + '\n'
+                                                                             row.find('td', width='40%').
+                                                                             find('b').text) + '\n'
     elif type in even:
         # четная неделя
         for row in table:
@@ -164,8 +146,7 @@ def get_timetable_week(html, type='текущая неделя'):
                                     a.find('b').text,
                                     a.contents[1],
                                     a.find('em').text,
-                                    a.find('b').findNextSibling(
-                                        'a').text) + '\n'
+                                    a.find('b').findNextSibling('a').text) + '\n'
 
                             else:
                                 week += u'\U00002B55' + '{0} {1} {2}'.format(row.find('td', width='1%').text,
@@ -204,18 +185,11 @@ def get_timetable_teacher(html, type='текущая неделя'):
                                 week += u'\U00002B55' + '{0} {1} {2} |{3}{4}| Каб: {5}'.format(
                                     row.find('td', width='1%').text,
                                     row.find('td', class_='nobr').text,
-                                    row.find('td', class_='light',
-                                             width='40%').find(
-                                        'a').text,
-                                    row.find('td', class_='light',
-                                             width='40%').find(
-                                        'b').text,
-                                    row.find('td', class_='light',
-                                             width='40%').contents[3],
-                                    row.find('td', class_='light',
-                                             width='40%').find(
-                                        'b').findNextSibling(
-                                        'a').text) + '\n'
+                                    row.find('td', class_='light', width='40%').find('a').text,
+                                    row.find('td', class_='light', width='40%').find('b').text,
+                                    row.find('td', class_='light', width='40%').contents[3],
+                                    row.find('td', class_='light', width='40%').find('b').findNextSibling('a').text) + \
+                                        '\n'
 
     if week == teacher_name + '\n':
         week = 'Расписание на преподавателя нет'
@@ -255,22 +229,16 @@ def get_timetable_day(html, day):
                                             timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                                 row.find('td', width='1%').text,
                                                 row.find('td', class_='nobr').text,
-                                                row.find('td', class_='light',
-                                                         width='40%').find('b').text,
-                                                row.find('td', class_='light',
-                                                         width='40%').contents[1],
-                                                row.find('td', class_='light',
-                                                         width='40%').find('em').text,
-                                                row.find('td', class_='light',
-                                                         width='40%').find(
-                                                    'b').findNextSibling('a').text) + '\n'
+                                                row.find('td', class_='light', width='40%').find('b').text,
+                                                row.find('td', class_='light', width='40%').contents[1],
+                                                row.find('td', class_='light', width='40%').find('em').text,
+                                                row.find('td', class_='light', width='40%').find('b').
+                                                    findNextSibling('a').text) + '\n'
                                         else:
                                             timetable_day += u'\U00002B55' + '{0} {1} {2}'.format(
                                                 row.find('td', width='1%').text,
                                                 row.find('td', class_='nobr').text,
-                                                row.find('td', class_='light',
-                                                         width='40%').find(
-                                                    'b').text) + '\n'
+                                                row.find('td', class_='light', width='40%').find('b').text) + '\n'
                         row = row.findNext('tr')
                 except AttributeError:
                     pass
@@ -325,22 +293,16 @@ def get_timetable_today(html):
                                             timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                                 row.find('td', width='1%').text,
                                                 row.find('td', class_='nobr').text,
-                                                row.find('td', class_='light',
-                                                         width='40%').find('b').text,
-                                                row.find('td', class_='light',
-                                                         width='40%').contents[1],
-                                                row.find('td', class_='light',
-                                                         width='40%').find('em').text,
-                                                row.find('td', class_='light',
-                                                         width='40%').find(
-                                                    'b').findNextSibling('a').text) + '\n'
+                                                row.find('td', class_='light', width='40%').find('b').text,
+                                                row.find('td', class_='light', width='40%').contents[1],
+                                                row.find('td', class_='light', width='40%').find('em').text,
+                                                row.find('td', class_='light', width='40%').
+                                                    find('b').findNextSibling('a').text) + '\n'
                                         else:
                                             timetable_day += u'\U00002B55' + '{0} {1} {2}'.format(
                                                 row.find('td', width='1%').text,
                                                 row.find('td', class_='nobr').text,
-                                                row.find('td', class_='light',
-                                                         width='40%').find(
-                                                    'b').text) + '\n'
+                                                row.find('td', class_='light', width='40%').find('b').text) + '\n'
                         row = row.findNext('tr')
                 except AttributeError:
                     pass
@@ -409,8 +371,7 @@ def get_timetable_tomorrow(html):
                                                     a.find('b').text,
                                                     a.contents[1],
                                                     a.find('em').text,
-                                                    a.find('b').findNextSibling(
-                                                        'a').text) + '\n'
+                                                    a.find('b').findNextSibling('a').text) + '\n'
                                             else:
                                                 timetable_day += u'\U00002B55' + '{0} {1} {2}'.format(
                                                     row.find('td', width='1%').text,
@@ -441,24 +402,16 @@ def get_timetable_tomorrow(html):
                                                 timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                                     row.find('td', width='1%').text,
                                                     row.find('td', class_='nobr').text,
-                                                    row.find('td',
-                                                             width='40%').find(
-                                                        'b').text,
-                                                    row.find('td',
-                                                             width='40%').contents[1],
-                                                    row.find('td',
-                                                             width='40%').find(
-                                                        'em').text,
-                                                    row.find('td',
-                                                             width='40%').find(
-                                                        'b').findNextSibling(
-                                                        'a').text) + '\n'
+                                                    row.find('td', width='40%').find('b').text,
+                                                    row.find('td', width='40%').contents[1],
+                                                    row.find('td', width='40%').find('em').text,
+                                                    row.find('td', width='40%').find('b').findNextSibling('a').text) + \
+                                                                 '\n'
                                             else:
                                                 timetable_day += u'\U00002B55' + '{0} {1} {2}'.format(
                                                     row.find('td', width='1%').text,
                                                     row.find('td', class_='nobr').text,
-                                                    row.find('td', width='40%').find(
-                                                        'b').text) + '\n'
+                                                    row.find('td', width='40%').find('b').text) + '\n'
                             row = row.findNext('tr')
                     except AttributeError:
                         pass
@@ -485,23 +438,17 @@ def get_timetable_tomorrow(html):
                                                 timetable_day += u'\U00002B55' + '{0} {1} {2}{3} /{4}/ Каб: {5}'.format(
                                                     row.find('td', width='1%').text,
                                                     row.find('td', class_='nobr').text,
-                                                    row.find('td', class_='light',
-                                                             width='40%').find('b').text,
-                                                    row.find('td', class_='light',
-                                                             width='40%').contents[1],
-                                                    row.find('td', class_='light',
-                                                             width='40%').find('em').text,
-                                                    row.find('td', class_='light',
-                                                             width='40%').find(
-                                                        'b').findNextSibling('a').text) + '\n'
+                                                    row.find('td', class_='light', width='40%').find('b').text,
+                                                    row.find('td', class_='light', width='40%').contents[1],
+                                                    row.find('td', class_='light', width='40%').find('em').text,
+                                                    row.find('td', class_='light', width='40%').find('b').
+                                                        findNextSibling('a').text) + '\n'
 
                                             else:
                                                 timetable_day += u'\U00002B55' + '{0} {1} {2}'.format(
                                                     row.find('td', width='1%').text,
                                                     row.find('td', class_='nobr').text,
-                                                    row.find('td', class_='light',
-                                                             width='40%').find(
-                                                        'b').text) + '\n'
+                                                    row.find('td', class_='light', width='40%').find('b').text) + '\n'
                             row = row.findNext('tr')
                     except AttributeError:
                         pass
@@ -521,16 +468,15 @@ def subscription(chat_id):
     """
     answer = ''
     connect = psycopg2.connect(DATABASE_URL, sslmode='require')
-    # connect = psycopg2.connect(dbname='test', user='postgres', host='localhost')
     cursor = connect.cursor()
     cursor.execute("SELECT * FROM users WHERE chat_id=(%(first)s)", {'first': chat_id})
     current_subscription = cursor.fetchone()[4]
 
-    if current_subscription == False:
+    if not current_subscription:
         cursor.execute("UPDATE users SET subscription=(%(first)s) WHERE chat_id=(%(second)s)",
                        {'first': True, 'second': chat_id})
         answer = 'Подписка подключена. Теперь вы будете получать уведомление о завтрашнем расписании'
-    elif current_subscription == True:
+    elif current_subscription:
         cursor.execute("UPDATE users SET subscription=(%(first)s) WHERE chat_id=(%(second)s)",
                        {'first': False, 'second': chat_id})
         answer = 'Подписка отключена'
@@ -622,22 +568,25 @@ def user_massages_handler(chat_id, message):
             send_message(chat_id, 'Такой команды нет')
 
     # Расписание на сегодня
-    elif re.fullmatch(r'\w{2,3}\d{2}-\w+ сегодня', message) or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+ сегодня', message) or re.fullmatch(
-            r'\w{2,3}\d{2}-\w+/\w+ сегодня', message):
+    elif re.fullmatch(r'\w{2,3}\d{2}-\w+ сегодня', message)\
+            or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+ сегодня', message)\
+            or re.fullmatch(r'\w{2,3}\d{2}-\w+/\w+ сегодня', message):
         start = message.index(' ')
         number_of_group = message[:start]
         send_message(chat_id, get_timetable_today(get_html(get_group_url(number_of_group))))
 
     # Расписание на завтра
-    elif re.fullmatch(r'\w{2,3}\d{2}-\w+ завтра', message) or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+ завтра', message) or re.fullmatch(
-            r'\w{2,3}\d{2}-\w+/\w+ завтра', message):
+    elif re.fullmatch(r'\w{2,3}\d{2}-\w+ завтра', message)\
+            or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+ завтра', message)\
+            or re.fullmatch(r'\w{2,3}\d{2}-\w+/\w+ завтра', message):
         start = message.index(' ')
         number_of_group = message[:start]
         send_message(chat_id, get_timetable_tomorrow(get_html(get_group_url(number_of_group))))
 
     # Расписание на текущую неделю
-    elif re.fullmatch(r'\w{2,3}\d{2}-\w+', message) or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+', message) or re.fullmatch(
-            r'\w{2,3}\d{2}-\w+/\w+', message):
+    elif re.fullmatch(r'\w{2,3}\d{2}-\w+', message)\
+            or re.fullmatch(r'\w{2,3}\d{2}-\w+-\w+', message)\
+            or re.fullmatch(r'\w{2,3}\d{2}-\w+/\w+', message):
         group_url = get_group_url(message)
         if group_url == 'Не удалось найти группу':
             send_message(chat_id, group_url)
@@ -658,8 +607,9 @@ def user_massages_handler(chat_id, message):
                 send_message(chat_id, get_timetable_week(get_html(group_url)))
 
     # Расписание на определенную неделю и на определенный день недели
-    elif re.search(r'\w{2,3}\d{2}-\w+ \w+', message) or re.search(r'\w{2,3}\d{2}-\w+-\w+ \w+', message) or re.search(
-            r'\w{2,3}\d{2}-\w+/\w+ \w+', message):
+    elif re.search(r'\w{2,3}\d{2}-\w+ \w+', message)\
+            or re.search(r'\w{2,3}\d{2}-\w+-\w+ \w+', message)\
+            or re.search(r'\w{2,3}\d{2}-\w+/\w+ \w+', message):
         start = message.index(' ')
         number_of_group = message[:start]
         second_part = message[start + 1:]
@@ -682,7 +632,8 @@ def user_massages_handler(chat_id, message):
                 send_message(chat_id, 'Неправильно составлен запрос')
 
     # Расписание преподавателя на неделю
-    elif re.fullmatch(r'\w+ \w. \w.', message) or re.fullmatch(r'\w+ \w \w', message) \
+    elif re.fullmatch(r'\w+ \w. \w.', message)\
+            or re.fullmatch(r'\w+ \w \w', message) \
             or re.fullmatch(r'\w+ \w. \w', message):
         send_message(chat_id, get_timetable_teacher(get_html(get_teacher_url(message))))
 
@@ -734,11 +685,12 @@ schedule.every().day.at("14:00").do(every_day_timetable)
 def schedule_run():
     while True:
         schedule.run_pending()
-        time.sleep(2)
+        time.sleep(1)
 
 
 t = threading.Thread(target=schedule_run, name='тест')
 t.start()
+
 
 # ////////////////////////////
 
