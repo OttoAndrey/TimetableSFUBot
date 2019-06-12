@@ -493,7 +493,7 @@ def get_text_of_command(message):
     Получает на вход команду пользователя
     Возвращает ответ в соответствии с командой
     """
-    commands = ['/start', '/help', '/registration', '/success_subscription']
+    commands = ['/start', '/help', '/registration', '/success_registration']
     answer = ''
     for command in commands:
         if message == command:
