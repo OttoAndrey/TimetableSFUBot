@@ -604,7 +604,7 @@ def user_massages_handler(chat_id, message):
         if message == '/start':
             send_message(chat_id, get_text_of_command(message))
         elif message == '/update_table':
-            if chat_id == ADMIN_CHAT_ID:
+            if chat_id == int(ADMIN_CHAT_ID):
                 send_message(chat_id, update_table_of_urls())
             else:
                 send_message(chat_id, 'Вы не имеете доступа к данной команде')
