@@ -5,6 +5,7 @@ import psycopg2
 import schedule
 import threading
 import time
+import transliterate
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 from flask_sslify import SSLify
@@ -12,8 +13,10 @@ from bs4 import BeautifulSoup
 
 DATABASE_URL = os.environ['DATABASE_URL']
 TOKEN = os.getenv('TOKEN')
-URL = 'https://api.telegram.org/bot' + TOKEN + '/'
+ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID')
 
+URL = 'https://api.telegram.org/bot' + TOKEN + '/'
+URL_TIMETABLE = 'http://edu.sfu-kras.ru/timetable'
 app = Flask(__name__)
 sslify = SSLify(app)
 
@@ -30,9 +33,64 @@ def get_html(url):
     return html.text
 
 
+def update_table_of_urls():
+    """
+     Формирует таблицу в базе данных для хранения названия групп и ссылок на их расписание
+    """
+    html = requests.get(URL_TIMETABLE)
+    soup = BeautifulSoup(html.text, 'lxml')
+
+    all_li = soup.find('section', class_='tabs-page active timetable-groups').find('ul').find_all('li')
+    # словарь: ключ - номер группы, значение - часть url'а
+    d = {}
+    for li in all_li:
+        try:
+            if li.find('a').get('href')[0] == '?':
+                href = li.find('a').get('href')
+                li = li.text
+
+                # Убирает 10ый и часть 9го пункт
+                li = re.sub('\(10 чел.\)|\(9 чел.\)|\(8 чел.\)|\(17 чел.\)', '', li)
+                li = re.sub('\(а\)  \(подгруппа 1\)', '1', li)
+                li = re.sub('\(а\)  \(подгруппа 2\)', '2', li)
+                # Убирает 8ой и часть 9го пункт
+                li = re.sub('\(а\)', '1', li)
+                li = re.sub('\(б\)', '2', li)
+                # Условие убирает 11ый пункт
+                if li[0] == '3':
+                    li = li[li.find('('):]
+                # Убирает 7ой пункт
+                li = re.sub('\(1 подгруппа\) \(подгруппа 1\)', '1', li)
+                li = re.sub('\(1 подгруппа\) \(подгруппа 2\)', '2', li)
+                # Убираает 2ой, 3ий, 12ый пункт
+                li = re.sub('\ |\ |подгруппа|\(|\)|п/г', '', li)
+
+                d[li.lower()] = href
+        except:
+            pass
+
+    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
+    cursor = connect.cursor()
+
+    cursor.execute("DELETE FROM urls_of_group")
+
+    connect.commit()
+
+    for li in d:
+        cursor.execute("INSERT INTO urls_of_group (number_of_group, number_of_group_en, part_of_url) "
+                       "VALUES (%(first)s, %(second)s, %(third)s)",
+                       {'first': li, 'second': transliterate.translit(li, reversed=True), 'third': d[li]})
+
+    connect.commit()
+    cursor.close()
+    connect.close()
+
+    return 'Ссылки на группы успешно обновлены'
+
+
 def get_teacher_url(message):
     """
-    Получает на вход сообщение пользователя с фамилией преподавателя
+    Получает на вход сообщение пользователя с фамилией и инициалами преподавателя
     Возвращает ссылку на расписание преподавателя
     """
     message = message.replace('.', '')
@@ -46,13 +104,20 @@ def get_group_url(number_of_group):
     Получает на вход номер группы
     Возвращает ссылку на расписание группы
     """
-    f = open('urls_of_group', encoding='utf-8')
-    group_url = 'Не удалось найти группу'
-    for line in f:
-        if number_of_group.lower() in line:
-            group_url = 'http://edu.sfu-kras.ru/timetable' + line[line.find('?'):-1]
-            break
-    f.close()
+    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
+    cursor = connect.cursor()
+    cursor.execute("SELECT part_of_url "
+                   "FROM urls_of_group "
+                   "WHERE number_of_group LIKE '%{0}%' OR number_of_group_en LIKE '%{0}%'".format(number_of_group))
+    try:
+        group_url = 'http://edu.sfu-kras.ru/timetable' + cursor.fetchone()[0]
+    except TypeError:
+        return 'Не удалось найти группу'
+
+    connect.commit()
+    cursor.close()
+    connect.close()
+
     return group_url
 
 
@@ -538,6 +603,11 @@ def user_massages_handler(chat_id, message):
 
         if message == '/start':
             send_message(chat_id, get_text_of_command(message))
+        elif message == '/update_table':
+            if chat_id == ADMIN_CHAT_ID:
+                send_message(chat_id, update_table_of_urls())
+            else:
+                send_message(chat_id, 'Вы не имеете доступа к данной команде')
         elif message == '/help':
             send_message(chat_id, get_text_of_command(message))
         elif message == '/registration':
@@ -693,7 +763,6 @@ t.start()
 
 
 # ////////////////////////////
-
 
 def send_message(chat_id, text='Не удалось найти группу'):
     url = URL + 'sendMessage'
