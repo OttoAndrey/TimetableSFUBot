@@ -245,5 +245,5 @@ def send_message(chat_id, text='Не удалось найти группу'):
     """
     url = URL + 'sendMessage'
     answer = {'chat_id': chat_id, 'text': text}
-    r = requests.post(url, json=answer, proxies={'https': '159.192.96.185:8080'})
+    r = requests.post(url, json=answer)
     return r.json()
