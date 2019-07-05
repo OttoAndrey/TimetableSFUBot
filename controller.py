@@ -7,6 +7,7 @@ import time
 from app import DATABASE_URL, ADMIN_CHAT_ID, URL
 from view import get_timetable_teacher, get_timetable_week, get_timetable_day, get_timetable_today
 from view import get_timetable_tomorrow, get_subscribers_timetable, subscription, update_table_of_urls
+from models import get_part_of_url
 
 
 def user_massages_handler(chat_id, message):
@@ -171,19 +172,13 @@ def get_group_url(number_of_group):
     Получает на вход номер группы
     Возвращает ссылку на расписание группы
     """
-    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
-    cursor = connect.cursor()
-    cursor.execute("SELECT part_of_url "
-                   "FROM urls_of_group "
-                   "WHERE number_of_group LIKE '%{0}%' OR number_of_group_en LIKE '%{0}%'".format(number_of_group))
+
+    part_of_url = get_part_of_url(number_of_group)
+
     try:
-        group_url = 'http://edu.sfu-kras.ru/timetable' + cursor.fetchone()[0]
+        group_url = 'http://edu.sfu-kras.ru/timetable' + part_of_url
     except TypeError:
         return 'Не удалось найти группу'
-
-    connect.commit()
-    cursor.close()
-    connect.close()
 
     return group_url
 
@@ -231,7 +226,6 @@ def schedule_run():
     while True:
         schedule.run_pending()
         time.sleep(1)
-        print('я работаю')
 
 
 t = threading.Thread(target=schedule_run, name='тест')

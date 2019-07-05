@@ -1,10 +1,10 @@
 import requests
 import re
-import psycopg2
-import transliterate
-from app import DATABASE_URL, URL_TIMETABLE
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
+from app import URL_TIMETABLE
+from models import get_all_subscribers, get_current_subscription, subscription_on, subscription_off
+from models import clear_table_of_urls, create_row_table_of_urls
 
 pin = u'\U00002B50'
 
@@ -416,15 +416,8 @@ def get_subscribers_timetable():
     """
     Ежедневная рассылка расписания
     """
-    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
-    cursor = connect.cursor()
-    cursor.execute("SELECT chat_id, number_of_group FROM users WHERE subscription=(%(first)s)", {'first': True})
 
-    all_subs = cursor.fetchall()
-
-    connect.commit()
-    cursor.close()
-    connect.close()
+    all_subs = get_all_subscribers()
 
     tomorrow = datetime.now() + timedelta(days=1)
     date = tomorrow.strftime('%d.%m.%Y')
@@ -449,23 +442,15 @@ def subscription(chat_id):
     Возвращает ответ о состоянии подписки пользователя
     """
     answer = ''
-    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
-    cursor = connect.cursor()
-    cursor.execute("SELECT * FROM users WHERE chat_id=(%(first)s)", {'first': chat_id})
-    current_subscription = cursor.fetchone()[4]
+
+    current_subscription = get_current_subscription(chat_id)
 
     if not current_subscription:
-        cursor.execute("UPDATE users SET subscription=(%(first)s) WHERE chat_id=(%(second)s)",
-                       {'first': True, 'second': chat_id})
+        subscription_on(chat_id)
         answer = 'Подписка подключена. Теперь вы будете получать уведомление о завтрашнем расписании'
     elif current_subscription:
-        cursor.execute("UPDATE users SET subscription=(%(first)s) WHERE chat_id=(%(second)s)",
-                       {'first': False, 'second': chat_id})
+        subscription_off(chat_id)
         answer = 'Подписка отключена'
-
-    connect.commit()
-    cursor.close()
-    connect.close()
 
     return answer
 
@@ -480,6 +465,7 @@ def update_table_of_urls():
     all_li = soup.find('section', class_='tabs-page active timetable-groups').find('ul').find_all('li')
     # словарь: ключ - номер группы, значение - часть url'а
     d = {}
+    # li это часть url'a
     for li in all_li:
         try:
             if li.find('a').get('href')[0] == '?':
@@ -506,20 +492,7 @@ def update_table_of_urls():
         except:
             pass
 
-    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
-    cursor = connect.cursor()
-
-    cursor.execute("DELETE FROM urls_of_group")
-
-    connect.commit()
-
-    for li in d:
-        cursor.execute("INSERT INTO urls_of_group (number_of_group, number_of_group_en, part_of_url) "
-                       "VALUES (%(first)s, %(second)s, %(third)s)",
-                       {'first': li, 'second': transliterate.translit(li, reversed=True), 'third': d[li]})
-
-    connect.commit()
-    cursor.close()
-    connect.close()
+    clear_table_of_urls()
+    create_row_table_of_urls(d)
 
     return 'Ссылки на группы успешно обновлены'
