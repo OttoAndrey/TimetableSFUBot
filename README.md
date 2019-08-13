@@ -15,7 +15,9 @@
 
 ##### Примеры:
 Использование команд
-![alt text](screenshots/command.png)
+
+![](screenshots/command.PNG)
 
 Использование бота как простой поисковик
-![alt text](screenshots/text.png)
+
+![](screenshots/text.PNG)
