@@ -16,8 +16,8 @@
 ##### Примеры:
 Использование команд
 
-![](screenshots/command.PNG)
+![](.gitbook/screenshots/command.PNG)
 
 Использование бота как простой поисковик
 
-![](screenshots/text.PNG)
+![](.gitbook/screenshots/text.PNG)
