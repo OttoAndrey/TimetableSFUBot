@@ -1,9 +1,12 @@
 import os
 from flask import Flask, request, jsonify
 from flask_sslify import SSLify
+from environs import Env
 
+env = Env()
+env.read_env()
 
-DATABASE_URL = os.environ['DATABASE_URL']
+DATABASE_URL = env.dj_db_url('DATABASE_URL')
 TOKEN = os.getenv('TOKEN')
 ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID')
 URL = 'https://api.telegram.org/bot' + TOKEN + '/'
